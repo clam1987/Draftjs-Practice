@@ -41,7 +41,7 @@
   border: 1px solid #ccc;
 } */
 
-.DraftEditor-root {
+.textfield {
   border: 1px solid #000;
   border-radius: 4px;
   /* background-color: beige; */

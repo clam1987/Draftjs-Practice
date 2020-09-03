@@ -5,7 +5,6 @@ import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Toolbar from "@material-ui/core/Toolbar";
 import FormatBoldIcon from '@material-ui/icons/FormatBold';
@@ -15,8 +14,9 @@ import StrikethroughSIcon from '@material-ui/icons/StrikethroughS';
 import ListIcon from '@material-ui/icons/List';
 import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
 import HighlightIcon from '@material-ui/icons/Highlight';
-import { Editor, EditorState, RichUtils } from "draft-js"
+import { Editor, EditorState, RichUtils, convertToRaw, ContentState } from "draft-js"
 import 'draft-js/dist/Draft.css';
+import API from "../utils/API"
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
@@ -41,6 +41,7 @@ const styleMap = {
 const TextFieldDialog = () => {
   const [open, setOpen] = useState(false);
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty())
+  const [subject, setSubject] = useState();
   const classes = useStyles();
 
   const handleClickOpen = () => {
@@ -85,6 +86,19 @@ const TextFieldDialog = () => {
     setOpen(false);
   };
 
+  const handleSubmit = e => {
+    e.preventDefault();
+    const encodeBody = convertToRaw(editorState.getCurrentContent());
+    const data = {
+      subject: subject,
+      body: encodeBody
+    };
+    console.log(data);
+    API.POST(data).then(x => {
+      setOpen(false);
+    })
+  }
+
   return (
     <div>
       <Button variant="outlined" color="primary" onClick={handleClickOpen}>
@@ -93,10 +107,7 @@ const TextFieldDialog = () => {
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            To subscribe to this website, please enter your email address here. We will send updates
-            occasionally.
-          </DialogContentText>
+          <TextField placeholder="Subject" onChange={e => setSubject(e.target.value)}/>
           <Toolbar disableGutters>
             <IconButton onClick={toggleInlineStyles} data-style="BOLD">
               <FormatBoldIcon />
@@ -120,7 +131,9 @@ const TextFieldDialog = () => {
               <HighlightIcon />
             </IconButton>
           </Toolbar>
+          <div className="textfield">
           <Editor editorState={editorState} onChange={handleChange} handleKeyCommand={handleKeyCommand} customStyleMap={styleMap}/>
+          </div>
           {/* <TextField
           InputProps={{
             disableUnderline: true,
@@ -142,8 +155,8 @@ const TextFieldDialog = () => {
           <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleClose} color="primary">
-            Subscribe
+          <Button onClick={handleSubmit} color="primary">
+            Submit
           </Button>
         </DialogActions>
       </Dialog>
